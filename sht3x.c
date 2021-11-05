@@ -11,6 +11,7 @@
 #include <linux/timer.h>
 #include <linux/jiffies.h>
 #include <linux/uaccess.h>
+#include <linux/version.h>
 
 #include "sht3x_ioctl.h"
 
@@ -192,9 +193,15 @@ static int __init sht3x_driver_init(void)
         return -1;
     }
 
-    sht_i2c_client = i2c_new_device(sht_i2c_adapter, &sht_i2c_board_info);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,8,0)
+    sht_i2c_client = i2c_new_client_device(sht_i2c_adapter, &sht_i2c_board_info);
+
+    if (sht_i2c_client == ERR_PTR)
+#else
+    sht_i2c_client = i2c_new__device(sht_i2c_adapter, &sht_i2c_board_info);
 
     if (sht_i2c_client == NULL)
+#endif
     {
         PRINTK(KERN_ERR,"Could not create new i2c device.\n");
         return -1;
